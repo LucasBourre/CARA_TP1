@@ -1,4 +1,0 @@
-Chrome Apps	JavaScript	http://developer.chrome.com/apps/about_apps.html	
-
-Pres : 30-45 min
-2h TP 
