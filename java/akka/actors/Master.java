@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileReader;
 
 
+//Line distribution with Master class
 public class Master extends AbstractActor {
 
     private Master() { }
@@ -17,13 +18,14 @@ public class Master extends AbstractActor {
         return Props.create(Master.class, () -> new Master());
     }
 
+	//Distribution
     private void distributeRowsToMappers(File file) {
         int i = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = br.readLine()) != null) {
-                getContext().actorSelection(Main.MAPPERS_SYSTEM_PATH + "/user/mapper" + i% Main.NB_MAPPERS).tell(line.toUpperCase(), getSelf());
+                getContext().actorSelection("/user/mapper" + i% Main.MAPPERS).tell(line.toUpperCase(), getSelf());
                 i++;
             }
         } catch (Exception e) {
@@ -33,16 +35,13 @@ public class Master extends AbstractActor {
 
 
     private void callReducersToprintOccurencesByWord() {
-        for (int i=0; i < Main.NB_REDUCERS; i++) {
-            getContext().actorSelection(Main.MASTER_REDUCERS_SYSTEM_PATH + "/user/reducer" + i%Main.NB_REDUCERS).tell("PRINT_OCCURRENCES_BY_WORD", getSelf());
+        for (int i=0; i < Main.REDUCERS; i++) {
+            getContext().actorSelection("/user/reducer" + i%Main.REDUCERS).tell("OCCURRENCES", getSelf());
         }
     }
 
     @Override
     public Receive createReceive() {
-        return receiveBuilder()
-                .matchEquals("PRINT_OCCURRENCES_BY_WORD", line -> callReducersToprintOccurencesByWord())
-                .match(File.class, this::distributeRowsToMappers)
-                .build();
+        return receiveBuilder().matchEquals("OCCURRENCES", line -> callReducersToprintOccurencesByWord()).match(File.class, this::distributeRowsToMappers).build();
     }
 }
